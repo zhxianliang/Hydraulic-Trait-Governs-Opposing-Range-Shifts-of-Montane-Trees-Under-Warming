@@ -1,143 +1,195 @@
-Hydraulic Trait Governs Opposing Range Shifts of Montane Trees Under Warming
-Repository Overview
+This directory contains the scripts used to process tree-ring chronologies, climate datasets, and species range-shift observations for the analyses presented in the manuscript:
 
-This repository contains all scripts used to generate the analyses and figures presented in the manuscript:
+Hydraulic Traits Govern Opposing Range Shifts of Montane Trees Under Warming
 
-Hydraulic Trait Governs Opposing Range Shifts of Montane Trees Under Warming
+The workflow integrates tree-ring chronologies, CRU climate data, BioShifts observations, and hydraulic trait datasets to quantify temporal climate sensitivity, elevational dependence of growth responses, and their relationships with species elevational range shifts.
 
-The study investigates how hydraulic traits regulate species-specific elevational range shifts across global mountain forests under recent climate warming.
+Workflow
 
-Using tree-ring records, climatic data, hydraulic trait databases, and species distribution information, we quantify:
+The data processing pipeline follows the steps below:
 
-species-specific climate sensitivity;
-elevational variation in climate-growth relationships;
-hydraulic controls on climate adaptation;
-hydraulic determinants of range-shift rates.
-Scientific Background
+CRU NetCDF climate data
+        │
+        ▼
+read_climate_data.m
+        │
+        ▼
+Monthly climate variables
+(PDSI, Temperature, Precipitation, DTR)
+        │
+        ├──────────────┐
+        ▼              ▼
+site_climate.m     site_corr.m
+        │              │
+        ▼              ▼
+Site climate      Site climate sensitivity
+        │
+        ▼
+temporal_cr_6_25.m
+        │
+        ▼
+Moving-window climate-growth correlations
+        │
+        ▼
+species_ele_cor.m
+        │
+        ▼
+Species elevational dependence
+        │
+        ▼
+bioshift_cr.R
+        │
+        ▼
+Merged BioShifts + climate sensitivity dataset
+Scripts
+Climate data preparation
+read_climate_data.m
 
-Mountain ecosystems are experiencing rapid warming and widespread redistribution of species. Although upslope migration is often expected, observed responses vary substantially among species, with some species expanding upslope while others show limited movement or even downslope shifts. Functional traits are increasingly recognized as important predictors of these heterogeneous responses.
+Reads monthly climate variables from CRU TS4.05 NetCDF datasets.
 
-This study evaluates whether hydraulic traits provide a mechanistic explanation for these contrasting range-shift responses.
+Input
 
-Data Sources
-Tree-ring database
-International Tree-Ring Data Bank (ITRDB)
-Mountain tree-ring chronologies
-Climate data
+CRU TS4.05 NetCDF files
+PDSI
+Minimum temperature
+Precipitation
+Diurnal Temperature Range (DTR)
+
+Output
+
+climate_data.mat
+site_climate.m
+
+Extracts long-term summer climate conditions for each tree-ring site from the nearest CRU grid cell.
+
+Summer climate is represented by:
+
+June–August mean temperature
+June–August mean PDSI
+June–August precipitation
+
+Output
+
+Site-level climate variables.
+
+Climate-growth relationships
+site_corr.m
+
+Calculates site-level Pearson correlations between tree-ring chronologies and summer climate variables over the common period (1901–1970).
+
+Climate variables include
+
+PDSI
 Temperature
 Precipitation
-Palmer Drought Severity Index (PDSI)
-Diurnal Temperature Range (DTR)
-Functional traits
-Hydraulic conductivity (Ks)
-Leaf-specific conductivity (Kl)
-Turgor loss point (TLP)
-Xylem vulnerability (P50)
-Species distributions
-Geographic coordinates
-Elevation records
-Range-shift rates
-Repository Structure
-├── Main Figures
-│   ├── fig.2 species_new.R
-│   ├── fig.3_2026_4_5.R
-│   ├── fig.4_shift_trait_new.R
-│   └── fig.5b.pca.R
-│
-├── Supplementary Figures
-│   ├── fig.S1_ele_species.R
-│   ├── fig.S2_ele_cr_4_9.R
-│   ├── fig.S3_ele_cr_4_9.R
-│   ├── fig.S4_ele_species_4_10.R
-│   ├── fig.S5_ele_species_tem_4_10.R
-│   ├── fig.S6 ele-shife-species_new.R
-│   ├── fig.S7 climate rate.R
-│   └── fig.S9 tree_distribution.m
-│
-├── Data
-│   ├── Climate data
-│   ├── Trait data
-│   ├── Species metadata
-│   └── Geographic information
-│
-└── README.md
-Figure Reproducibility
-Figure	Description	Script
-Fig. 2	Species-specific climate sensitivity	fig.2 species_new.R
-Fig. 3	Hydraulic traits and elevational climate responses	fig.3_2026_4_5.R
-Fig. 4	Hydraulic controls on range shifts	fig.4_shift_trait_new.R
-Fig. 5	Trait coordination and PCA	fig.5b.pca.R
-Fig. S1	Elevation distributions	fig.S1_ele_species.R
-Fig. S2	Elevation–climate relationships	fig.S2_ele_cr_4_9.R
-Fig. S3	Temporal climate responses	fig.S3_ele_cr_4_9.R
-Fig. S4	Elevation effects on drought sensitivity	fig.S4_ele_species_4_10.R
-Fig. S5	Elevation effects on temperature sensitivity	fig.S5_ele_species_tem_4_10.R
-Fig. S6	Shift-rate distributions	fig.S6 ele-shife-species_new.R
-Fig. S7	Warming rate versus shift rate	fig.S7 climate rate.R
-Fig. S9	Global site distribution	fig.S9 tree_distribution.m
-Analytical Workflow
-Tree-ring records
-        │
-        ▼
-Climate-growth correlations
-        │
-        ▼
-Elevational analyses
-        │
-        ▼
-Hydraulic trait integration
-        │
-        ▼
-Species range-shift estimation
-        │
-        ▼
-Trait-based interpretation of migration responses
-Software Requirements
-R
+DTR
 
-Version ≥ 4.2
+Output
 
-Required packages:
+site_cor.mat
+temporal_cr_6_25.m
 
-ggplot2
-tidyverse
-reshape2
-openxlsx
-readxl
-plantlist
-FactoMineR
-factoextra
-ggrepel
-patchwork
-R.matlab
+Calculates moving-window climate-growth correlations.
+
+Parameters
+
+Window length: 40 years
+Step size: 5 years
+Total windows: 11
+
+Outputs temporal changes in climate sensitivity for every tree-ring site.
+
+Elevational dependence
+species_ele_cor.m
+
+Quantifies elevational dependence of climate sensitivity for each species.
+
+Procedure
+
+species with >20 sites retained
+random sampling of 20 sites
+100 bootstrap iterations
+Pearson correlation between elevation and climate sensitivity
+
+Outputs
+
+mean bootstrap correlation
+bootstrap standard deviation
+Species range shifts
+bioshift_cr.R
+
+Matches BioShifts records with the nearest tree-ring climate-sensitivity record of the same species.
+
+Extracted variables include
+
+PDSI sensitivity
+Temperature sensitivity
+Precipitation sensitivity
+Elevation
+
+Outputs
+
+bioshift_cr.csv
+chuli_ele_cr_species.R
+
+Processes species-level elevation information and merges taxonomic classifications with climate sensitivity data for downstream analyses.
+
+climate_rate_4_3.m
+
+Calculates long-term linear trends (1951–1990) of climate variables at species range-shift locations.
+
+Climate trends are estimated using ordinary least-squares regression.
+
+Outputs include annual trends for
+
+PDSI
+Temperature
+Precipitation
+Data Requirements
+
+The scripts require the following datasets:
+
+Tree-ring chronologies
+Site coordinates
+Site elevation
+Species metadata
+CRU TS4.05 climate datasets
+BioShifts database
+Hydraulic trait database
+
+Large input datasets are not included in this repository because of licensing and file-size limitations.
+
+Software
 MATLAB
 
-Version ≥ R2022a
+Tested with
 
-Required toolboxes:
+MATLAB R2023b or later
 
-Mapping Toolbox
+Required Toolboxes
+
 Statistics and Machine Learning Toolbox
-Reproducibility Statement
+R
 
-All figures reported in the manuscript can be reproduced directly using the scripts provided in this repository after updating local file paths to the corresponding datasets.
+Tested with
 
-Code Availability
+R ≥ 4.3
 
-All code necessary to reproduce the analyses and figures is publicly available in this repository.
+Required packages
 
+openxlsx
+readxl
+ggplot2
+reshape2
+plantlist
+Notes
+Climate variables were extracted from the nearest CRU grid cell based on site coordinates.
+Summer climate represents the June–August growing season.
+Climate-growth relationships were quantified using Pearson correlation coefficients.
+Temporal changes were evaluated using 40-year moving windows with a 5-year step.
+Species-level analyses used bootstrap resampling to reduce sampling bias associated with unequal numbers of tree-ring sites.
 Citation
 
-If you use these scripts or derived products, please cite:
+If you use this code, please cite the associated manuscript:
 
-Zhang X., et al. Hydraulic Trait Governs Opposing Range Shifts of Montane Trees Under Warming. Nature Climate Change (Accepted).
-
-Contact
-
-Xianliang Zhang
-
-Faculty of Forestry, University of British Columbia
-
-College of Forestry, Hebei Agricultural University
-
-Email: zhxianliang85@gmail.com
+Zhang X., et al. Hydraulic Traits Govern Opposing Range Shifts of Montane Trees Under Warming.
